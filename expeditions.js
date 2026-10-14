@@ -9,12 +9,15 @@ if(!query.has('source')){
 }
 // The main plugin input is always structure, including older MSU share links.
 if(state.fleetUnit===1){state.pluginFleet/=state.fleetK;state.fleetUnit=0;}
+// Older links could mark the item as already included in plugin maxima.
+if(state.source===1&&state.boosterIncluded===1)state.boosterActive=0;
+state.boosterIncluded=0;
 const defs={discovererBonus:['Усиление Исследователя · «Общее», %','0'],pluginFleet:['Максимальная структура кораблей','60000000'],boosterPercent:['Бонус предмета, %','25'],t4:['Σ T4 · корабли','0'],t5:['Σ T5 · ресурсы','0'],t11:['Σ T11 · ресурсы','0'],t18:['Σ T18 · Исследователь','0'],experience:['Опыт ФЖ, уровень','0'],techBoost:['Усиление тех. зданиями, %','0'],economy:['Скорость экономики','8'],topPoints:['Очки игрока №1','100000000'],resourceBonus:['Бонус ресурсов ФЖ, %','0'],shipBonus:['Бонус кораблей ФЖ, %','0'],metalMax:['Максимальная находка металла','120000000'],fleetMetalMax:['Максимальная структура флота × 2','120000000'],slots:['Экспедиций в одной волне','8'],waves:['Волн в день','6'],days:['Дней в периоде','30'],computer:['Множитель экспедиционного компьютера','1'],fuel:['Топливо на одну экспедицию, дейтерий','0'],loss:['Средние потери на экспедицию, МСУ','0'],scrap:['Реализация стоимости флота, %','100'],resourceChance:['Шанс ресурсов, %','34.5'],shipChance:['Шанс кораблей, %','16.5'],fleetK:['МСУ / структура найденного флота','1.5']};
 const num=E.displayNumber;
 const compact=v=>num(v/(Math.abs(v)>=1e9?1e9:Math.abs(v)>=1e6?1e6:1))+(Math.abs(v)>=1e9?' млрд':Math.abs(v)>=1e6?' млн':'');
 function field(key){return `<label for="${key}"><span>${defs[key][0]}</span><input id="${key}" data-key="${key}" data-number="true" type="text" inputmode="${['economy','topPoints','slots','waves','days'].includes(key)?'numeric':'decimal'}" autocomplete="off" spellcheck="false" value="${E.formatInput(state[key])}"></label>`;}
 for(const [id,keys] of Object.entries({proFields:['t4','t5','t11','t18','experience','techBoost'],automaticFields:['economy','topPoints'],gameFields:['resourceBonus','shipBonus','discovererBonus'],manualFields:['metalMax','pluginFleet'],boosterPercentField:['boosterPercent'],activityFields:['slots','waves','days','computer'],costFields:['fuel','loss','scrap'],probabilityFields:['resourceChance','shipChance','fleetK']}))$(id).innerHTML=keys.map(field).join('');
-$('model').value=state.model;document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});$('boosterIncluded').value=state.boosterIncluded;$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
+$('model').value=state.model;document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
 let theme='minimal';try{theme=localStorage.getItem('ias-theme')||theme;}catch{}
 document.documentElement.dataset.theme=theme;$('theme').value=theme;
 $('theme').onchange=()=>{document.documentElement.dataset.theme=$('theme').value;try{localStorage.setItem('ias-theme',$('theme').value);}catch{}};
@@ -24,7 +27,8 @@ function render(){
   $('automaticFields').hidden=!!state.manual;$('manualFields').hidden=!state.manual;$('probabilityFields').hidden=!state.model;
   $('gameFields').hidden=!!state.manual;$('gameHelp').hidden=!!state.manual||!!state.pro;
   $('pluginHelp').hidden=!state.manual;
-  $('boosterFields').hidden=!state.boosterActive;$('boosterIncludedField').hidden=!state.manual;
+  $('boosterFields').hidden=!state.boosterActive;
+  $('boosterHelp').textContent=state.manual?'Отметьте, если плагин не учёл бонус предмета. Введите его процент, например 25.':'Отметьте, если предмет активен, и введите его процент, например 25.';
   document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});
 
   for(const el of document.querySelectorAll('[data-key]')){el.removeAttribute('aria-invalid');if(el.dataset.number&&!Number.isFinite(state[el.dataset.key]))el.setAttribute('aria-invalid','true');}
