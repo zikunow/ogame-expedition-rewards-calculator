@@ -35,7 +35,7 @@ function render(){
   $('gameFields').hidden=!!state.manual;$('gameHelp').hidden=!!state.manual||!!state.pro;
   $('pluginHelp').hidden=!state.manual;
   $('boosterFields').hidden=!state.boosterActive;
-  $('boosterHelp').textContent=state.manual?'Отметьте, если плагин не учёл бонус предмета. Введите его процент, например 25.':'Отметьте, если предмет активен, и введите его процент, например 25.';
+  $('boosterHelp').textContent=state.manual?'Включите, если плагин не учёл бонус предмета. Введите его процент, например 25.':'Включите, если предмет активен, и введите его процент, например 25.';
   document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});
 
   for(const el of document.querySelectorAll('[data-key]')){el.removeAttribute('aria-invalid');if(el.dataset.number&&!Number.isFinite(state[el.dataset.key]))el.setAttribute('aria-invalid','true');}
