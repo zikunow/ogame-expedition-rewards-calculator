@@ -43,10 +43,12 @@ Sum each technology across all planets; 18 planets with level 20 means 360. Shar
 
 Final multipliers relative to the unboosted Discoverer/Pathfinder baseline are (1 + resource bonus) × (1 + T18 bonus) and (1 + fleet bonus) × (1 + T18 bonus). Technology names and 0.2% per-level effects are documented in the [official forum expedition guide](https://board.en.ogame.gameforge.com/index.php?thread/858580-expeditions-you-the-advanced-guide/).
 
-If planet boosts differ, enter effective weighted levels and leave shared amplification at zero. Expedition count remains an explicit input including any T18 slots. The shared item controls apply in all three modes. Plugin maxima already include lifeforms and T18 and never receive those effects again. Fleet maximum inputs explicitly choose structure (metal + crystal) or full MSU valuation; MSU conversion uses the fleet MSU/structure coefficient (default 1.5).
+If planet boosts differ, enter effective weighted levels and leave shared amplification at zero. Expedition count remains an explicit input including any T18 slots. The shared item controls apply in all three modes. Plugin maxima already include lifeforms and T18 and never receive those effects again. The default input asks for maximum metal and maximum fleet structure (metal + crystal), matching OGameTracker. Old MSU-valued share links are converted to structure automatically using the saved MSU/structure coefficient (default 1.5).
 
 ## Expedition resource item
 
 Enable the item checkbox and enter its percentage (default 25%, inactive initially). It multiplies the resource cap by 1 + percentage / 100; ship rewards remain unchanged. In plugin mode, the explicit "already included" choice skips this extra multiplier. We deliberately do not infer inclusion from plugin names or versions. The item is assumed active throughout the selected period.
 
 Old share links retain their numeric results: legacy fleet metal-equivalent caps are migrated to structure by dividing by two, and old combined percentages are used with zero separately entered Discoverer enhancement.
+
+The landing page defaults to plugin maximum metal and fleet structure. The alternative input selector sits below the expedition item controls. Explicit source choices in existing share links are preserved.

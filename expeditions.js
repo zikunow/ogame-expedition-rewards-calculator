@@ -4,15 +4,17 @@ let state={...E.defaults};
 for(const key of Object.keys(state))if(query.has(key))state[key]=query.get(key).trim()===''?NaN:Number(query.get(key));
 // Existing share links used total percentages or a metal-equivalent fleet cap.
 if(!query.has('source')){
-  state.source=state.manual?1:state.pro?2:0;
+  state.source=query.size===0?1:state.manual?1:state.pro?2:0;
   if(state.manual)state.pluginFleet=state.fleetMetalMax/2;
 }
-const defs={discovererBonus:['Усиление Исследователя · «Общее», %','0'],pluginFleet:['Максимальная находка флота','60000000'],boosterPercent:['Бонус предмета, %','25'],t4:['Σ T4 · корабли','0'],t5:['Σ T5 · ресурсы','0'],t11:['Σ T11 · ресурсы','0'],t18:['Σ T18 · Исследователь','0'],experience:['Опыт ФЖ, уровень','0'],techBoost:['Усиление тех. зданиями, %','0'],economy:['Скорость экономики','8'],topPoints:['Очки игрока №1','100000000'],resourceBonus:['Бонус ресурсов ФЖ, %','0'],shipBonus:['Бонус кораблей ФЖ, %','0'],metalMax:['Максимальная находка металла','120000000'],fleetMetalMax:['Максимальная структура флота × 2','120000000'],slots:['Экспедиций в одной волне','8'],waves:['Волн в день','6'],days:['Дней в периоде','30'],computer:['Множитель экспедиционного компьютера','1'],fuel:['Топливо на одну экспедицию, дейтерий','0'],loss:['Средние потери на экспедицию, МСУ','0'],scrap:['Реализация стоимости флота, %','100'],resourceChance:['Шанс ресурсов, %','34.5'],shipChance:['Шанс кораблей, %','16.5'],fleetK:['МСУ / структура найденного флота','1.5']};
+// The main plugin input is always structure, including older MSU share links.
+if(state.fleetUnit===1){state.pluginFleet/=state.fleetK;state.fleetUnit=0;}
+const defs={discovererBonus:['Усиление Исследователя · «Общее», %','0'],pluginFleet:['Максимальная структура кораблей','60000000'],boosterPercent:['Бонус предмета, %','25'],t4:['Σ T4 · корабли','0'],t5:['Σ T5 · ресурсы','0'],t11:['Σ T11 · ресурсы','0'],t18:['Σ T18 · Исследователь','0'],experience:['Опыт ФЖ, уровень','0'],techBoost:['Усиление тех. зданиями, %','0'],economy:['Скорость экономики','8'],topPoints:['Очки игрока №1','100000000'],resourceBonus:['Бонус ресурсов ФЖ, %','0'],shipBonus:['Бонус кораблей ФЖ, %','0'],metalMax:['Максимальная находка металла','120000000'],fleetMetalMax:['Максимальная структура флота × 2','120000000'],slots:['Экспедиций в одной волне','8'],waves:['Волн в день','6'],days:['Дней в периоде','30'],computer:['Множитель экспедиционного компьютера','1'],fuel:['Топливо на одну экспедицию, дейтерий','0'],loss:['Средние потери на экспедицию, МСУ','0'],scrap:['Реализация стоимости флота, %','100'],resourceChance:['Шанс ресурсов, %','34.5'],shipChance:['Шанс кораблей, %','16.5'],fleetK:['МСУ / структура найденного флота','1.5']};
 const num=v=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(v);
 const compact=v=>num(v/(Math.abs(v)>=1e9?1e9:Math.abs(v)>=1e6?1e6:1))+(Math.abs(v)>=1e9?' млрд':Math.abs(v)>=1e6?' млн':'');
 function field(key){return `<label for="${key}"><span>${defs[key][0]}</span><input id="${key}" data-key="${key}" type="number" min="${['economy','slots','waves','days','computer','fleetK'].includes(key)?1:0}" ${['resourceChance','shipChance','scrap','experience'].includes(key)?'max="100"':''} step="${['economy','topPoints','slots','waves','days'].includes(key)?1:'any'}" value="${Number.isFinite(state[key])?state[key]:''}"></label>`;}
 for(const [id,keys] of Object.entries({proFields:['t4','t5','t11','t18','experience','techBoost'],automaticFields:['economy','topPoints'],gameFields:['resourceBonus','shipBonus','discovererBonus'],manualFields:['metalMax','pluginFleet'],boosterPercentField:['boosterPercent'],activityFields:['slots','waves','days','computer'],costFields:['fuel','loss','scrap'],probabilityFields:['resourceChance','shipChance','fleetK']}))$(id).innerHTML=keys.map(field).join('');
-$('model').value=state.model;$('source').value=state.source;$('fleetUnit').value=state.fleetUnit;$('boosterIncluded').value=state.boosterIncluded;$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
+$('model').value=state.model;$('source').value=state.source;$('boosterIncluded').value=state.boosterIncluded;$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
 let theme='minimal';try{theme=localStorage.getItem('ias-theme')||theme;}catch{}
 document.documentElement.dataset.theme=theme;$('theme').value=theme;
 $('theme').onchange=()=>{document.documentElement.dataset.theme=$('theme').value;try{localStorage.setItem('ias-theme',$('theme').value);}catch{}};
@@ -21,7 +23,7 @@ function render(){
   state.manual=Number(state.source===1);state.pro=Number(state.source===2);
   $('automaticFields').hidden=!!state.manual;$('manualFields').hidden=!state.manual;$('probabilityFields').hidden=!state.model;
   $('gameFields').hidden=!!state.manual;$('gameHelp').hidden=!!state.manual||!!state.pro;
-  $('pluginHelp').hidden=!state.manual;$('fleetUnitField').hidden=!state.manual;
+  $('pluginHelp').hidden=!state.manual;
   $('boosterFields').hidden=!state.boosterActive;$('boosterIncludedField').hidden=!state.manual;
   $('source').value=state.source;
 
