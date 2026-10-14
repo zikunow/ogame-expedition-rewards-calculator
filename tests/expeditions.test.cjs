@@ -57,3 +57,19 @@ test('inactive source and item fields cannot invalidate another input mode',()=>
   assert.throws(()=>calc({source:1,boosterActive:1,boosterPercent:NaN}));
   assert.throws(()=>calc({source:1,fleetUnit:3}));
 });
+test('number display groups thousands with dots and decimals with commas',()=>{
+  assert.equal(E.formatInput(120000000),'120.000.000');
+  assert.equal(E.displayNumber(1234567.89),'1.234.567,89');
+  assert.equal(E.parseInput('120.000.000'),120000000);
+  assert.equal(E.parseInput('120\u00a0000\u00a0000'),120000000);
+  assert.equal(E.parseInput('7,14'),7.14);assert.equal(E.parseInput('7.14'),7.14);
+  assert.equal(E.parseInput('1.234.567,89'),1234567.89);
+  assert.equal(E.parseInput('120,000,000'),120000000);
+  assert.ok(Number.isNaN(E.parseInput('')));assert.ok(Number.isNaN(E.parseInput('abc')));
+});
+test('live quantity editing regroups existing separators and preserves decimal entry',()=>{
+  assert.equal(E.formatEditing('120.0000',true),'1.200.000');
+  assert.equal(E.parseInput('120.0000',true),1200000);
+  assert.equal(E.formatEditing('1.00',true),'100');
+  assert.equal(E.formatEditing('7,'),'7,');assert.equal(E.formatEditing('7,140'),'7,140');
+});

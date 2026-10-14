@@ -47,6 +47,27 @@
     const dailyFlights=s.slots*s.waves;
     return {base,reference,metalMax,fleetMetalMax,f,resourceRate,shipRate,resources,ships,realised,fuel,net,dailyFlights,resourceBonus,shipBonus,technology,source,itemApplied,itemFactor,metalBeforeItem,daily:net*dailyFlights,period:net*dailyFlights*s.days};
   }
-  const api={brackets,defaults,calculate,technologyBonuses};
+  const displayNumber=(value,digits=2)=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:digits}).format(value);
+  function normalizedInput(value,grouping=false){
+    let text=String(value).replace(/[\s\u00a0\u202f']/g,'');
+    if(grouping)text=text.replace(/\./g,'');
+    if(/^[+-]?\d{1,3}(?:,\d{3}){2,}$/.test(text))return text.replace(/,/g,'');
+    if(text.includes(',')||/^[+-]?\d{1,3}(?:\.\d{3})+$/.test(text))text=text.replace(/\./g,'');
+    else if((text.match(/\./g)||[]).length===1)text=text.replace('.',',');
+    return text;
+  }
+  function parseInput(value,grouping=false){
+    const text=normalizedInput(value,grouping);
+    if(!/^[+-]?\d+(?:,\d*)?$/.test(text))return NaN;
+    return Number(text.replace(',','.'));
+  }
+  function formatEditing(value,grouping=false){
+    const text=normalizedInput(value,grouping);
+    if(!/^[+-]?\d+(?:,\d*)?$/.test(text))return String(value);
+    const [integer,fraction]=text.split(',');
+    return integer.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(fraction===undefined?'':','+fraction);
+  }
+  const formatInput=value=>Number.isFinite(value)?displayNumber(value,12):'';
+  const api={brackets,defaults,calculate,technologyBonuses,displayNumber,formatInput,parseInput,formatEditing};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Expeditions=api;
 })(globalThis);
