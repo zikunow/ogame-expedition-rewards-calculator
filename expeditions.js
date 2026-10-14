@@ -2,6 +2,10 @@
 const E=Expeditions, $=id=>document.getElementById(id), query=new URLSearchParams(location.search);
 let state={...E.defaults};
 for(const key of Object.keys(state))if(query.has(key))state[key]=query.get(key).trim()===''?NaN:Number(query.get(key));
+// Reports use fixed day, week and 30-day horizons.
+state.days=30;
+let computerEnabled=state.computer!==1;
+let computerMultiplier=computerEnabled?state.computer:1.1;
 // Existing share links used total percentages or a metal-equivalent fleet cap.
 if(!query.has('source')){
   state.source=query.size===0?1:state.manual?1:state.pro?2:0;
@@ -16,13 +20,14 @@ const defs={discovererBonus:['Усиление Исследователя · «�
 const num=E.displayNumber;
 const compact=v=>num(v/(Math.abs(v)>=1e9?1e9:Math.abs(v)>=1e6?1e6:1))+(Math.abs(v)>=1e9?' млрд':Math.abs(v)>=1e6?' млн':'');
 function field(key){return `<label for="${key}"><span>${defs[key][0]}</span><input id="${key}" data-key="${key}" data-number="true" type="text" inputmode="${['economy','topPoints','slots','waves','days','flightsPerDay'].includes(key)?'numeric':'decimal'}" autocomplete="off" spellcheck="false" value="${E.formatInput(state[key])}"></label>`;}
-for(const [id,keys] of Object.entries({proFields:['t4','t5','t11','t18','experience','techBoost'],automaticFields:['economy','topPoints'],gameFields:['resourceBonus','shipBonus','discovererBonus'],manualFields:['metalMax','pluginFleet'],boosterPercentField:['boosterPercent'],waveFields:['slots','waves'],dailyFlightFields:['flightsPerDay'],activityFields:['days','computer'],costFields:['fuel','loss','scrap'],probabilityFields:['resourceChance','shipChance','fleetK']}))$(id).innerHTML=keys.map(field).join('');
+for(const [id,keys] of Object.entries({proFields:['t4','t5','t11','t18','experience','techBoost'],automaticFields:['economy','topPoints'],gameFields:['resourceBonus','shipBonus','discovererBonus'],manualFields:['metalMax','pluginFleet'],boosterPercentField:['boosterPercent'],waveFields:['slots','waves'],dailyFlightFields:['flightsPerDay'],activityFields:['computer'],costFields:['fuel','loss','scrap'],probabilityFields:['resourceChance','shipChance','fleetK']}))$(id).innerHTML=keys.map(field).join('');
 $('model').value=state.model;document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
 let theme='minimal';try{theme=localStorage.getItem('ias-theme')||theme;}catch{}
 document.documentElement.dataset.theme=theme;$('theme').value=theme;
 $('theme').onchange=()=>{document.documentElement.dataset.theme=$('theme').value;try{localStorage.setItem('ias-theme',$('theme').value);}catch{}};
 $('calculatorSelect').onchange=()=>{location.href=$('calculatorSelect').value;};
 function render(){
+  $('computerEnabled').checked=computerEnabled;$('computerSettings').hidden=!computerEnabled;
   $('waveFields').hidden=state.flightMode===1;$('dailyFlightFields').hidden=state.flightMode!==1;
   document.querySelectorAll('[name="flightMode"]').forEach(el=>{el.checked=Number(el.value)===state.flightMode;});
   state.manual=Number(state.source===1);state.pro=Number(state.source===2);
@@ -50,9 +55,9 @@ function render(){
   $('proSummary').innerHTML=`<div><span>T4 · корабли</span><b>+${num(b.ships*100)}%</b></div><div><span>T5 + T11 · ресурсы</span><b>+${num(b.resources*100)}%</b></div><div><span>T18 · множитель находок</span><b>×${num(1+b.discoverer)}</b></div><div class="pro-total"><span>Итого · ресурсы / флот</span><b>+${num(b.resourceBonus)}% / +${num(b.shipBonus)}%</b></div><p>${state.pro?'Бонусы подставлены в поля выше.':'Измените уровни, чтобы подставить рассчитанные бонусы.'}</p>`;
 
   const metric=(title,value,help)=>`<div class="metric"><span>${title}</span><b>${compact(value)}</b><small>${help}</small></div>`;
-  const row=(label,mult)=>`<tr><td>${label}</td><td>${num(r.resources*mult)}</td><td>${num(r.ships*mult)}</td><td>${num(r.realised*mult)}</td><td>${num((r.fuel+state.loss)*mult)}</td><td><strong>${num(r.net*mult)}</strong></td></tr>`;
-  $('results').innerHTML=`<section class="panel daily-panel"><div class="section-top"><h2>Ожидаемый доход</h2><span>${num(r.dailyFlights)} экспедиций в день</span></div><div class="metrics">${metric('Ресурсы за экспедицию',r.resources,'МСУ · до расходов')}${metric('Флот за экспедицию',r.ships,'МСУ · полная стоимость кораблей')}${metric('Итого за день',r.daily,'МСУ · с заданными расходами и возвратом флота')}</div><p class="applied-bonuses">${appliedText}<br>${itemText}</p><div class="table-wrap"><table><thead><tr><th>Период</th><th>Ресурсы, МСУ</th><th>Флот, МСУ</th><th>Флот к доходу, МСУ</th><th>Расходы, МСУ</th><th>Итого, МСУ</th></tr></thead><tbody>${row('Одна экспедиция',1)}${state.flightMode===1?'':row('Одна волна',state.slots)}${row('Один день',r.dailyFlights)}${row(num(state.days)+' дней',r.dailyFlights*state.days)}</tbody></table></div><p class="note">Итого = ресурсы + флот × ${num(state.scrap)}% − топливо × 3 − заданные средние потери. Флот к доходу уже входит в итог.</p></section><section class="panel account-panel"><h2>Максимальные находки</h2><div class="metrics">${metric('Металл',r.metalMax,'единиц ресурса')}${metric('Кристалл',r.metalMax/2,'единиц ресурса')}${metric('Дейтерий',r.metalMax/3,'единиц ресурса')}</div><p class="note">Максимальная структура кораблей: ${num(r.fleetMetalMax/2)}. Оценка её полной стоимости: ${num(r.fleetMetalMax/2*state.fleetK)} МСУ. Корабельный и ресурсный максимумы используют разные бонусы.</p><p class="exp-formula">${state.manual?'Максимумы взяты из плагина.':`Базовый максимум: ${num(r.base)} × ${num(state.economy)} (экономика) × 1,5 (Исследователь) × 2 (первопроходец).`}<br>${!state.manual&&state.pro?`Бонусы из технологий: ресурсы +${num(r.resourceBonus)}%, флот +${num(r.shipBonus)}%.<br>`:''}Коэффициенты среднего: ресурсы ${num(r.resourceRate*100)}%; флот ${num(r.shipRate*100)}%; компьютер ×${num(state.computer)}.</p></section>`;
-  const url=new URL(location.href);url.search='';for(const[k,v]of Object.entries(state))url.searchParams.set(k,v);history.replaceState({},'',url);
+  const row=(label,mult)=>`<tr${label==='Один день'?' class="daily-row"':''}><td>${label}</td><td>${num(r.resources*mult)}</td><td>${num(r.ships*mult)}</td><td>${num(r.realised*mult)}</td><td>${num((r.fuel+state.loss)*mult)}</td><td><strong>${num(r.net*mult)}</strong></td></tr>`;
+  $('results').innerHTML=`<section class="panel daily-panel"><div class="section-top"><h2>Ожидаемый доход</h2><span>${num(r.dailyFlights)} экспедиций в день</span></div><div class="metrics">${metric('Ресурсы за экспедицию',r.resources,'МСУ · до расходов')}${metric('Флот за экспедицию',r.ships,'МСУ · полная стоимость кораблей')}${metric('Итого за день',r.daily,'МСУ · с заданными расходами и возвратом флота')}</div><p class="applied-bonuses">${appliedText}<br>${itemText}</p><div class="table-wrap"><table><thead><tr><th>Период</th><th>Ресурсы, МСУ</th><th>Флот, МСУ</th><th>Флот к доходу, МСУ</th><th>Расходы, МСУ</th><th>Итого, МСУ</th></tr></thead><tbody>${row('Одна экспедиция',1)}${state.flightMode===1?'':row('Одна волна',state.slots)}${row('Один день',r.dailyFlights)}${row('Одна неделя',r.dailyFlights*7)}${row('30 дней',r.dailyFlights*30)}</tbody></table></div><p class="note">Итого = ресурсы + флот × ${num(state.scrap)}% − топливо × 3 − заданные средние потери. Флот к доходу уже входит в итог.</p></section><section class="panel account-panel"><h2>Максимальные находки</h2><div class="metrics">${metric('Металл',r.metalMax,'единиц ресурса')}${metric('Кристалл',r.metalMax/2,'единиц ресурса')}${metric('Дейтерий',r.metalMax/3,'единиц ресурса')}</div><p class="note">Максимальная структура кораблей: ${num(r.fleetMetalMax/2)}. Оценка её полной стоимости: ${num(r.fleetMetalMax/2*state.fleetK)} МСУ. Корабельный и ресурсный максимумы используют разные бонусы.</p><p class="exp-formula">${state.manual?'Максимумы взяты из плагина.':`Базовый максимум: ${num(r.base)} × ${num(state.economy)} (экономика) × 1,5 (Исследователь) × 2 (первопроходец).`}<br>${!state.manual&&state.pro?`Бонусы из технологий: ресурсы +${num(r.resourceBonus)}%, флот +${num(r.shipBonus)}%.<br>`:''}Коэффициенты среднего: ресурсы ${num(r.resourceRate*100)}%; флот ${num(r.shipRate*100)}%; компьютер ×${num(state.computer)}.</p></section>`;
+  const url=new URL(location.href);url.search='';for(const[k,v]of Object.entries(state))if(k!=='days')url.searchParams.set(k,v);history.replaceState({},'',url);
 }
 $('settings').addEventListener('input',event=>{
   const el=event.target,key=el.dataset.key;if(!key)return;
@@ -80,9 +85,16 @@ $('settings').addEventListener('input',event=>{
     if(Number.isInteger(total)&&total>=1&&total<=10000){state.flightsPerDay=total;$('flightsPerDay').value=E.formatInput(total);}
   }
   state[key]=value;
+  if(key==='computer')computerMultiplier=value;
   if(['t4','t5','t11','t18','experience','techBoost'].includes(key))state.source=2;
   if(['resourceBonus','shipBonus','discovererBonus'].includes(key))state.source=0;
   if(key==='source'){$('methodPicker').open=false;if(state.source===2)$('proSettings').open=true;}
+  render();
+});
+$('computerEnabled').addEventListener('input',()=>{
+  computerEnabled=$('computerEnabled').checked;
+  state.computer=computerEnabled?computerMultiplier:1;
+  $('computer').value=E.formatInput(state.computer);
   render();
 });
 $('settings').addEventListener('submit',event=>event.preventDefault());
