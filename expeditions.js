@@ -35,7 +35,7 @@ function render(){
   $('gameFields').hidden=!!state.manual;$('gameHelp').hidden=!!state.manual||!!state.pro;
   $('pluginHelp').hidden=!state.manual;
   $('boosterFields').hidden=!state.boosterActive;
-  $('boosterHelp').textContent=state.manual?'Включите, если плагин не учёл бонус предмета. Введите его процент, например 25.':'Включите, если предмет активен, и введите его процент, например 25.';
+  $('boosterHelp').textContent=state.manual?'Включите, если плагин не учёл бонус предмета.':'Включите, если предмет активен.';
   document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});
 
   for(const el of document.querySelectorAll('[data-key]')){el.removeAttribute('aria-invalid');if(el.dataset.number&&!Number.isFinite(state[el.dataset.key]))el.setAttribute('aria-invalid','true');}
@@ -50,6 +50,7 @@ function render(){
   }
   const itemText=!state.boosterActive?'Предмет не активирован.':r.itemApplied?`Предмет +${num(state.boosterPercent)}% добавлен к ресурсам. Флот без изменений.`:'Предмет уже учтён во введённом максимуме металла. Повторно не начисляется.';
   $('boosterStatus').textContent=itemText;
+  $('boosterStatus').classList.toggle('inactive',!state.boosterActive);
   const appliedText=state.manual?'Используются максимумы из плагина: ФЖ и T18 повторно не начисляются.':`ФЖ: ресурсы +${num((state.pro?r.technology.resources*100:state.resourceBonus))}%, корабли +${num((state.pro?r.technology.ships*100:state.shipBonus))}% · Исследователь +${num(state.pro?r.technology.discoverer*100:state.discovererBonus)}%.`;
   const b=r.technology;
   $('proSummary').innerHTML=`<div><span>T4 · корабли</span><b>+${num(b.ships*100)}%</b></div><div><span>T5 + T11 · ресурсы</span><b>+${num(b.resources*100)}%</b></div><div><span>T18 · множитель находок</span><b>×${num(1+b.discoverer)}</b></div><div class="pro-total"><span>Итого · ресурсы / флот</span><b>+${num(b.resourceBonus)}% / +${num(b.shipBonus)}%</b></div><p>${state.pro?'Бонусы подставлены в поля выше.':'Измените уровни, чтобы подставить рассчитанные бонусы.'}</p>`;
