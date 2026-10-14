@@ -14,7 +14,7 @@ const num=E.displayNumber;
 const compact=v=>num(v/(Math.abs(v)>=1e9?1e9:Math.abs(v)>=1e6?1e6:1))+(Math.abs(v)>=1e9?' млрд':Math.abs(v)>=1e6?' млн':'');
 function field(key){return `<label for="${key}"><span>${defs[key][0]}</span><input id="${key}" data-key="${key}" data-number="true" type="text" inputmode="${['economy','topPoints','slots','waves','days'].includes(key)?'numeric':'decimal'}" autocomplete="off" spellcheck="false" value="${E.formatInput(state[key])}"></label>`;}
 for(const [id,keys] of Object.entries({proFields:['t4','t5','t11','t18','experience','techBoost'],automaticFields:['economy','topPoints'],gameFields:['resourceBonus','shipBonus','discovererBonus'],manualFields:['metalMax','pluginFleet'],boosterPercentField:['boosterPercent'],activityFields:['slots','waves','days','computer'],costFields:['fuel','loss','scrap'],probabilityFields:['resourceChance','shipChance','fleetK']}))$(id).innerHTML=keys.map(field).join('');
-$('model').value=state.model;$('source').value=state.source;$('boosterIncluded').value=state.boosterIncluded;$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
+$('model').value=state.model;document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});$('boosterIncluded').value=state.boosterIncluded;$('boosterActive').checked=!!state.boosterActive;$('proSettings').open=state.source===2;
 let theme='minimal';try{theme=localStorage.getItem('ias-theme')||theme;}catch{}
 document.documentElement.dataset.theme=theme;$('theme').value=theme;
 $('theme').onchange=()=>{document.documentElement.dataset.theme=$('theme').value;try{localStorage.setItem('ias-theme',$('theme').value);}catch{}};
@@ -25,7 +25,7 @@ function render(){
   $('gameFields').hidden=!!state.manual;$('gameHelp').hidden=!!state.manual||!!state.pro;
   $('pluginHelp').hidden=!state.manual;
   $('boosterFields').hidden=!state.boosterActive;$('boosterIncludedField').hidden=!state.manual;
-  $('source').value=state.source;
+  document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});
 
   for(const el of document.querySelectorAll('[data-key]')){el.removeAttribute('aria-invalid');if(el.dataset.number&&!Number.isFinite(state[el.dataset.key]))el.setAttribute('aria-invalid','true');}
   let r;try{r=E.calculate(state);}catch{ $('validation').hidden=false;$('results').innerHTML='';return;}
@@ -71,7 +71,7 @@ $('settings').addEventListener('input',event=>{
   state[key]=value;
   if(['t4','t5','t11','t18','experience','techBoost'].includes(key))state.source=2;
   if(['resourceBonus','shipBonus','discovererBonus'].includes(key))state.source=0;
-  if(key==='source'&&state.source===2)$('proSettings').open=true;
+  if(key==='source'){$('methodPicker').open=false;if(state.source===2)$('proSettings').open=true;}
   render();
 });
 $('settings').addEventListener('submit',event=>event.preventDefault());
