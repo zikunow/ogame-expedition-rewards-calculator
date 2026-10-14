@@ -73,3 +73,13 @@ test('live quantity editing regroups existing separators and preserves decimal e
   assert.equal(E.formatEditing('1.00',true),'100');
   assert.equal(E.formatEditing('7,'),'7,');assert.equal(E.formatEditing('7,140'),'7,140');
 });
+
+test('direct daily flights match waves, ignore unused wave inputs and scale the period',()=>{
+  const wave=calc({slots:12,waves:7,days:20});
+  const direct=calc({flightMode:1,flightsPerDay:84,slots:NaN,waves:NaN,days:20});
+  assert.equal(direct.dailyFlights,84);assert.equal(direct.daily,wave.daily);assert.equal(direct.period,wave.period);
+  assert.equal(calc({flightMode:1,flightsPerDay:100}).daily,calc().net*100);
+  assert.doesNotThrow(()=>calc({flightMode:0,flightsPerDay:NaN}));
+  for(const flightsPerDay of [0,-1,1.5,NaN])assert.throws(()=>calc({flightMode:1,flightsPerDay}));
+  assert.throws(()=>calc({flightMode:2}));
+});
