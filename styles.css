@@ -18,6 +18,6 @@ input[data-number]{font-variant-numeric:tabular-nums;font-weight:600;font-size:1
 
 .bonus-status.inactive{color:var(--accent);font-weight:400}
 
-/* Compact settings, with matching desktop column edges. */
+/* Compact settings; reports keep their natural height as controls expand. */
 #settings .panel{padding:18px}#settings .field-grid{margin-top:14px;gap:12px}#settings .booster-panel{margin-top:14px;padding-top:12px}#settings .note{margin-top:8px}#settings .bonus-status{margin-top:6px}#settings .method-picker{margin-top:12px;padding-top:10px}#settings .exp-actions{margin-top:10px;padding-top:10px}#settings .flight-mode{margin:14px 0 10px}#settings .flight-mode+.field-grid{margin-top:10px}#settings .field-grid label>span{min-height:0}#settings #dailyFlightSummary{margin-bottom:0}#settings .computer-panel{margin-top:12px;padding-top:12px}#settings .flight-panel>details{margin-top:14px!important;padding-top:12px}
-@media(min-width:861px){.calculator-layout{align-items:stretch}#settings{display:flex;flex-direction:column;gap:14px}#settings>.panel{margin:0}#settings>.flight-panel{flex:1}.results-column{display:flex;flex-direction:column}#results{display:flex;flex:1}#results>.daily-panel{flex:1;margin:0;display:flex;flex-direction:column}#results .table-wrap{margin-top:auto;padding-top:0}#results .applied-bonuses{margin-bottom:24px}.model-panel{margin-top:18px}}
+@media(min-width:861px){.calculator-layout{align-items:start}#settings{display:flex;flex-direction:column;gap:14px;align-self:stretch}#settings>.panel{margin:0}#settings>.flight-panel{flex:1}.results-column{align-self:start}#results>.daily-panel{margin:0}.model-panel{margin-top:18px}}
