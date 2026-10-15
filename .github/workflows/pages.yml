@@ -30,6 +30,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html styles.css rewards.css expeditions-core.js expeditions.js .nojekyll _site/
+          cp -R simple _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
