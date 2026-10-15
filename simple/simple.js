@@ -1,13 +1,13 @@
 'use strict';
 const E=Expeditions,$=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const keys=['source','discoverer','metalMax','pluginFleet','resourceBonus','shipBonus','discovererBonus','economy','topPoints','flightsPerDay'];
+const keys=['source','discoverer','orion','metalMax','pluginFleet','resourceBonus','shipBonus','discovererBonus','economy','topPoints','flightsPerDay'];
 const quantities=['metalMax','pluginFleet','economy','topPoints','flightsPerDay'];
-const state={...E.defaults,source:1,flightMode:1};
+const state={...E.defaults,source:1,orion:1,flightMode:1};
 for(const key of keys)if(query.has(key))state[key]=query.get(key).trim()===''?NaN:Number(query.get(key));
 for(const el of document.querySelectorAll('[data-key]')){
   const key=el.dataset.key;
   if(key==='topPoints'){state[key]=[0,10000,100000,1000000,5000000,25000000,50000000,75000000,100000000].filter(v=>v<=state[key]).pop()??100000000;}
-  el.value=el.tagName==='SELECT'?String(state[key]):E.formatInput(state[key]);
+  el.value=key==='discoverer'?String(state.discoverer?1:state.orion?0:2):el.tagName==='SELECT'?String(state[key]):E.formatInput(state[key]);
 }
 const num=E.displayNumber;
 const compact=v=>num(v/(Math.abs(v)>=1e9?1e9:Math.abs(v)>=1e6?1e6:1))+(Math.abs(v)>=1e9?' млрд':Math.abs(v)>=1e6?' млн':'');
@@ -16,7 +16,7 @@ function render(){
   document.querySelectorAll('[name="source"]').forEach(el=>{el.checked=Number(el.value)===state.source;});
   for(const el of document.querySelectorAll('[data-key]'))el.removeAttribute('aria-invalid');
   $('discovererBonus').disabled=!state.discoverer;
-  $('classHelp').textContent=state.discoverer?'Экономика и усиление Исследователя учитываются в находках.':'Для другого класса экономика и усиление Исследователя не применяются. Первопроходец даёт ×2.';
+  $('classHelp').textContent=state.discoverer?'Экономика и усиление Исследователя учитываются в находках.':state.orion?'Orion/PTS 13.1: экономика учитывается, усиление Исследователя — нет.':'До Orion: экономика и усиление Исследователя не применяются.';
   let r;try{r=E.calculate(state);}catch(err){$('error').hidden=false;$('output').hidden=true;const el=$(err.message);if(el)el.setAttribute('aria-invalid','true');return;}
   $('error').hidden=true;$('output').hidden=false;
   $('perFlight').textContent=compact(r.net);$('perDay').textContent=compact(r.daily);$('perMonth').textContent=compact(r.period);
@@ -28,7 +28,7 @@ $('simpleForm').addEventListener('input',event=>{
   const el=event.target;
   if(el.name==='source'){state.source=Number(el.value);render();return;}
   const key=el.dataset.key;if(!key)return;
-  if(el.tagName==='SELECT'){state[key]=Number(el.value);render();return;}
+  if(el.tagName==='SELECT'){if(key==='discoverer'){state.discoverer=Number(el.value==="1");state.orion=Number(el.value!=="2");}else state[key]=Number(el.value);render();return;}
   const grouping=quantities.includes(key),raw=el.value,position=el.selectionStart??raw.length;
   state[key]=E.parseInput(raw,grouping);
   const formatted=E.formatEditing(raw,grouping);

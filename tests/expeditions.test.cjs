@@ -91,3 +91,11 @@ test('other classes use pathfinder only, ignore economy and Discoverer enhanceme
   assert.equal(calc({source:0,discoverer:1,economy:9}).metalMax,135e6);
   assert.throws(()=>calc({source:0,discoverer:2}));
 });
+
+test('Orion other classes receive economy scaling but no Discoverer/T18 enhancement',()=>{
+  const a=calc({source:0,discoverer:0,orion:1,economy:8,discovererBonus:100});
+  const b=calc({source:0,discoverer:0,orion:1,economy:8,discovererBonus:0});
+  const disco=calc({source:0,discoverer:1,orion:1,economy:8,discovererBonus:100});
+  assert.equal(a.metalMax,80e6);assert.equal(a.daily,b.daily);assert.equal(disco.metalMax,240e6);
+  assert.equal(calc({source:0,discoverer:0,orion:1,economy:9}).metalMax,90e6);
+});
