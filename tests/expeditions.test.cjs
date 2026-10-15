@@ -83,3 +83,11 @@ test('direct daily flights match waves, ignore unused wave inputs and scale the 
   for(const flightsPerDay of [0,-1,1.5,NaN])assert.throws(()=>calc({flightMode:1,flightsPerDay}));
   assert.throws(()=>calc({flightMode:2}));
 });
+
+test('other classes use pathfinder only, ignore economy and Discoverer enhancement',()=>{
+  const a=calc({source:0,discoverer:0,economy:9,discovererBonus:NaN,resourceBonus:100,shipBonus:50});
+  const b=calc({source:0,discoverer:0,economy:1,discovererBonus:999,resourceBonus:100,shipBonus:50});
+  assert.equal(a.metalMax,20e6);assert.equal(a.fleetMetalMax,15e6);assert.equal(a.daily,b.daily);
+  assert.equal(calc({source:0,discoverer:1,economy:9}).metalMax,135e6);
+  assert.throws(()=>calc({source:0,discoverer:2}));
+});
